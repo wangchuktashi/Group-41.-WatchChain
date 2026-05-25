@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchChain</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav><a href="index.html">WatchChain</a></nav>
+
+    <main>
+        <!-- Connects MetaMask and sends the user to the right dashboard based on their wallet -->
+        <section class="card center">
+            <h2>Open Dashboard</h2>
+            <button onclick="openMyPage()">Connect MetaMask</button>
+            <div id="status-role" class="status-box"></div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
+</body>
+</html>

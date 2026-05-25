@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav><a href="index.html">WatchChain</a></nav>
+
+    <header>
+        <h1>Owner / Buyer</h1>
+    </header>
+
+    <main>
+        <!-- Shows the connected wallet address at the top of the page -->
+        <section class="wallet">
+            <button onclick="connectWallet()">Connect MetaMask</button>
+            <span id="walletAddress">Not connected</span>
+        </section>
+
+        <!-- Checks if the watch is genuine and shows its details -->
+        <section class="card">
+            <h2>Verify Watch</h2>
+            <label>Token ID</label>
+            <input type="number" id="verifyTokenId">
+            <button onclick="verifyWatch()">Verify Watch</button>
+            <div id="status-verify" class="status-box"></div>
+        </section>
+
+        <!-- Checks who currently owns the watch -->
+        <section class="card">
+            <h2>Check Ownership</h2>
+            <label>Token ID</label>
+            <input type="number" id="ownerTokenId">
+            <button onclick="checkOwnership()">Check Owner</button>
+            <div id="status-owner" class="status-box"></div>
+        </section>
+
+        <!-- Loads all service records for a watch — no transaction needed -->
+        <section class="card">
+            <h2>Service History</h2>
+            <label>Token ID</label>
+            <input type="number" id="historyTokenId">
+            <button onclick="viewServiceHistory()">View History</button>
+            <div id="status-history" class="status-box"></div>
+            <div id="historyResults"></div>
+        </section>
+
+        <!-- Transfers the watch to a new owner -->
+        <section class="card">
+            <h2>Transfer Watch</h2>
+            <label>Token ID</label>
+            <input type="number" id="transferTokenId">
+            <label>New Owner Wallet</label>
+            <input id="newOwnerAddr">
+            <button onclick="transferWatch()">Transfer Watch</button>
+            <div id="status-transfer" class="status-box"></div>
+        </section>
+    </main>
+
+    <!-- ethers.js is the library that lets the page talk to the blockchain -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- config.js holds the contract addresses, ABIs and shared functions -->
+    <script src="config.js"></script>
+    <script>
+        // Stores the contracts so all the functions below can use them
+        let owner;
+        let retailer;
+        let service;
+        let manufacturer;
+
+        // Connects MetaMask and loads all the contracts this page needs
+        async function connectWallet() {
+            const wallet = await connect(); // connect() is defined in config.js
+            owner        = makeContract(ADDRESSES.owner,         OWNER_ABI,        wallet.signer);
+            retailer     = makeContract(ADDRESSES.retailer,      RETAILER_ABI,     wallet.signer);
+            service      = makeContract(ADDRESSES.service,       SERVICE_ABI,      wallet.signer);
+            manufacturer = makeContract(ADDRESSES.manufacturer,  MANUFACTURER_ABI, wallet.signer);
+            $("walletAddress").textContent = wallet.address;
+        }
+
+        // Checks if the watch is genuine and shows all its details
+        // Also warns if the watch has been flagged as stolen
+        async function verifyWatch() {
+            const tokenId = val("verifyTokenId");
+            const basic   = await owner.verifyWatch(tokenId);         // basic info from the owner contract
+            const full    = await manufacturer.getWatchInfo(tokenId); // full info from the manufacturer contract
+
+            // Combine both into one object so watchText can format it
+            const message = watchText(tokenId, {
+                serialNumber: basic.serialNumber,
+                model:        basic.model,
+                status:       basic.status,
+                description:  full.description,
+                owner:        full.owner,
+                mintedAt:     full.mintedAt
+            });
+
+            // Show a warning if the watch has been marked as stolen
+            show("status-verify", basic.status === "Stolen" ? "WARNING: This watch is stolen.\n\n" + message : message);
+        }
+
+        // Checks who owns the watch and whether it belongs to the connected wallet
+        async function checkOwnership() {
+            const tokenId     = val("ownerTokenId");
+            const currentOwner = await owner.checkOwner(tokenId);  // get the owner's address
+            const isMine       = await owner.verifyOwner(tokenId); // true if the connected wallet owns it
+            show("status-owner", "Owner: " + currentOwner + "\nOwned by you: " + (isMine ? "Yes" : "No"));
+        }
+
+        // Loads all service records for a watch and displays them
+        // showHistory is defined in config.js and shared across pages
+        function viewServiceHistory() {
+            showHistory("status-history", "historyResults", service, val("historyTokenId"));
+        }
+
+        // Transfers the watch to a new owner using the retailer contract
+        function transferWatch() {
+            runTransaction("status-transfer", retailer, () => retailer.transferToNewOwner(val("transferTokenId"), val("newOwnerAddr")), () => "Watch transferred.");
+        }
+    </script>
+</body>
+</html>

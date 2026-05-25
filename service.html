@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Centre</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav><a href="index.html">WatchChain</a></nav>
+
+    <header>
+        <h1>Service Centre</h1>
+    </header>
+
+    <main>
+        <!-- Shows the connected wallet address at the top of the page -->
+        <section class="wallet">
+            <button onclick="connectWallet()">Connect MetaMask</button>
+            <span id="walletAddress">Not connected</span>
+        </section>
+
+        <!-- Marks the watch as currently being serviced -->
+        <section class="card">
+            <h2>Mark In Service</h2>
+            <label>Token ID</label>
+            <input type="number" id="inServiceTokenId">
+            <button onclick="markInService()">Mark In Service</button>
+            <div id="status-inService" class="status-box"></div>
+        </section>
+
+        <!-- Saves a service record permanently on the blockchain -->
+        <section class="card">
+            <h2>Log Service</h2>
+            <label>Token ID</label>
+            <input type="number" id="logTokenId">
+            <label>Reason</label>
+            <input id="serviceReason">
+            <label>Details</label>
+            <input id="serviceDetails">
+            <button onclick="addServiceDetails()">Save Record</button>
+            <div id="status-log" class="status-box"></div>
+        </section>
+
+        <!-- Transfers the watch back to the owner after servicing -->
+        <section class="card">
+            <h2>Return to Owner</h2>
+            <label>Token ID</label>
+            <input type="number" id="returnTokenId">
+            <label>Owner Wallet</label>
+            <input id="returnOwnerAddr">
+            <button onclick="returnToOwner()">Return Watch</button>
+            <div id="status-return" class="status-box"></div>
+        </section>
+
+        <!-- Loads all service records for a watch — no transaction needed -->
+        <section class="card">
+            <h2>Service History</h2>
+            <label>Token ID</label>
+            <input type="number" id="historyTokenId">
+            <button onclick="viewServiceHistory()">View History</button>
+            <div id="status-history" class="status-box"></div>
+            <div id="historyResults"></div>
+        </section>
+    </main>
+
+    <!-- ethers.js is the library that lets the page talk to the blockchain -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- config.js holds the contract addresses, ABIs and shared functions -->
+    <script src="config.js"></script>
+    <script>
+        // Stores the contracts so all the functions below can use them
+        let service;
+        let manufacturer;
+
+        // Connects MetaMask and loads the service and manufacturer contracts
+        async function connectWallet() {
+            const wallet = await connect(); // connect() is defined in config.js
+            service      = makeContract(ADDRESSES.service,      SERVICE_ABI,      wallet.signer);
+            manufacturer = makeContract(ADDRESSES.manufacturer, MANUFACTURER_ABI, wallet.signer);
+            $("walletAddress").textContent = wallet.address;
+        }
+
+        // Marks the watch as currently being serviced
+        function markInService() {
+            runTransaction("status-inService", service, () => service.markInService(val("inServiceTokenId")), () => "Watch marked in service.");
+        }
+
+        // Saves a service record to the blockchain
+        function addServiceDetails() {
+            runTransaction("status-log", service, () => service.addServiceDetails(val("logTokenId"), val("serviceReason"), val("serviceDetails")), () => "Service record saved.");
+        }
+
+        // Sends the watch back to the owner after servicing
+        function returnToOwner() {
+            runTransaction("status-return", service, () => service.returnToOwner(val("returnTokenId"), val("returnOwnerAddr")), () => "Watch returned to owner.");
+        }
+
+        // Loads all service records for a watch and displays them
+        // showHistory is defined in config.js and shared across pages
+        function viewServiceHistory() {
+            showHistory("status-history", "historyResults", service, val("historyTokenId"));
+        }
+    </script>
+</body>
+</html>

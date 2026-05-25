@@ -1,0 +1,88 @@
+/* Makes sure padding doesn't change how wide things are */
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #e4e4e4;
+    color: #222;
+}
+
+/* The dark bar along the top */
+nav {
+    background: #000000;
+    padding: 14px 24px;
+}
+
+nav a {
+    color: white;
+    font-weight: bold;
+    text-decoration: none; /* gets rid of the underline on the link that goes to the home page */
+}
+
+/* The grey title area at the top of each page */
+header {
+    padding: 16px;
+    text-align: center;
+}
+
+/* Keeps the page content in the middle and stops it getting too wide */
+main {
+    max-width: 800px;
+    margin: 24px auto;
+    padding: 0 20px;
+}
+
+/* White boxes */
+.card, .wallet {
+    background: white;
+    border: 1px solid #c4c4c4;
+    margin-bottom: 18px;
+    padding: 18px;
+}
+
+/* Home page button */
+.center { text-align: center; }
+
+/* Each label sits on its own line above the input */
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+/* Inputs and buttons are the same size and stretch across the full card */
+input, button {
+    margin-top: 6px;
+    padding: 9px;
+    width: 100%;
+}
+
+button {
+    background: #444;
+    border: 0;
+    color: white;
+
+}
+
+/* Monospace font makes wallet addresses and results easier to read */
+#walletAddress, .status-box, .history-record {
+    font-family: monospace;
+    word-break: break-all; /* stops long addresses from spilling outside the box */
+}
+
+.status-box, .history-record {
+    background: #fafafa;
+    border: 1px solid #ccc;
+    margin-top: 12px;
+    padding: 10px;
+    white-space: pre-wrap; /* keeps line breaks in the output text */
+}
+
+/* Hidden until show() in config.js makes it visible */
+.status-box { display: none; }
+
+/* The background colour changes depending on what happened */
+.success { background: #e6f8e7; } /* green for success */
+.error   { background: #fee7e4; } /* red for errors */
+.info    { background: #e2e7f8; } /* blue for general info */

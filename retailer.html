@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retailer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav><a href="index.html">WatchChain</a></nav>
+
+    <header>
+        <h1>Retailer</h1>
+    </header>
+
+    <main>
+        <!-- Shows the connected wallet address at the top of the page -->
+        <section class="wallet">
+            <button onclick="connectWallet()">Connect MetaMask</button>
+            <span id="walletAddress">Not connected</span>
+        </section>
+
+        <!-- Sells the watch to a customer by transferring the NFT to their wallet -->
+        <section class="card">
+            <h2>Sell Watch</h2>
+            <label>Token ID</label>
+            <input type="number" id="sellTokenId">
+            <label>Customer Wallet</label>
+            <input id="customerAddr">
+            <button onclick="sellToCustomer()">Sell to Customer</button>
+            <div id="status-sell" class="status-box"></div>
+        </section>
+
+        <!-- Transfers the watch to a different owner -->
+        <section class="card">
+            <h2>Transfer Watch</h2>
+            <label>Token ID</label>
+            <input type="number" id="transferTokenId">
+            <label>New Owner Wallet</label>
+            <input id="newOwnerAddr">
+            <button onclick="transferToNewOwner()">Transfer Watch</button>
+            <div id="status-transfer" class="status-box"></div>
+        </section>
+
+        <!-- Just reads data from the blockchain — no transaction or gas needed -->
+        <section class="card">
+            <h2>Watch Info</h2>
+            <label>Token ID</label>
+            <input type="number" id="infoTokenId">
+            <button onclick="getWatchInfo()">Get Watch Info</button>
+            <div id="status-info" class="status-box"></div>
+        </section>
+    </main>
+
+    <!-- ethers.js is the library that lets the page talk to the blockchain -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- config.js holds the contract addresses, ABIs and shared functions -->
+    <script src="config.js"></script>
+    <script>
+        // Stores the contracts so all the functions below can use them
+        let retailer;
+        let manufacturer;
+
+        // Connects MetaMask and loads the retailer and manufacturer contracts
+        async function connectWallet() {
+            const wallet = await connect(); // connect() is defined in config.js
+            retailer     = makeContract(ADDRESSES.retailer,     RETAILER_ABI,     wallet.signer);
+            manufacturer = makeContract(ADDRESSES.manufacturer, MANUFACTURER_ABI, wallet.signer);
+            $("walletAddress").textContent = wallet.address;
+        }
+
+        // Sells the watch to a customer by transferring the NFT to their wallet
+        function sellToCustomer() {
+            runTransaction("status-sell", retailer, () => retailer.sellToCustomer(val("sellTokenId"), val("customerAddr")), () => "Watch sold to customer.");
+        }
+
+        // Transfers the watch to a new owner
+        function transferToNewOwner() {
+            runTransaction("status-transfer", retailer, () => retailer.transferToNewOwner(val("transferTokenId"), val("newOwnerAddr")), () => "Watch transferred.");
+        }
+
+        // Looks up a watch by token ID and shows its details
+        // showWatch is defined in config.js and shared across all pages
+        function getWatchInfo() {
+            showWatch("status-info", manufacturer, val("infoTokenId"));
+        }
+    </script>
+</body>
+</html>

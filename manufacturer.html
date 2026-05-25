@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav><a href="index.html">WatchChain</a></nav>
+
+    <header>
+        <h1>Manufacturer</h1>
+    </header>
+
+    <main>
+        <!-- Shows the connected wallet address at the top of the page -->
+        <section class="wallet">
+            <button onclick="connectWallet()">Connect MetaMask</button>
+            <span id="walletAddress">Not connected</span>
+        </section>
+
+        <!-- This only needs to be clicked once right after the contracts are deployed, it lets the retailer and service contracts talk to the manufacturer contract -->
+        <section class="card">
+            <h2>One Time Setup For Retailer and Service Centre</h2>
+            <button onclick="authoriseContracts()">Allow Retailer and Service Contracts</button>
+            <div id="status-authorise" class="status-box"></div>
+        </section>
+
+        <!-- Addes a retailer and service centre wallet addess -->
+        <section class="card">
+            <h2>Add Approved Users</h2>
+            <label>Retailer Wallet</label>
+            <input id="retailerWallet">
+            <button onclick="addRetailer()">Add Retailer</button>
+            <div id="status-addRetailer" class="status-box"></div>
+            <hr>
+            <label>Service Centre Wallet</label>
+            <input id="serviceCentreWallet">
+            <button onclick="addServiceCentre()">Add Service Centre</button>
+            <div id="status-addServiceCentre" class="status-box"></div>
+        </section>
+
+        <!-- Creates a new watch on the blockchain as an NFT Each watch gets a unique token ID aka a a number in assending order when minted -->
+        <section class="card">
+            <h2>Mint Watch</h2>
+            <label>Serial Number</label>
+            <input id="mintSerial">
+            <label>Model</label>
+            <input id="mintModel">
+            <label>Description</label>
+            <input id="mintDesc">
+            <button onclick="mintWatch()">Mint Watch</button>
+            <div id="status-mint" class="status-box"></div>
+        </section>
+
+        <!-- Moves the watch NFT from the manufacturer to a retailer's wallet -->
+        <section class="card">
+            <h2>Send Watch to Retailer</h2>
+            <label>Token ID</label>
+            <input type="number" id="sendTokenId">
+            <label>Retailer Wallet</label>
+            <input id="sendRetailerAddr">
+            <button onclick="sendToRetailer()">Send to Retailer</button>
+            <div id="status-send" class="status-box"></div>
+        </section>
+
+        <!-- Marks a watch as stolen on the blockchain -->
+        <section class="card">
+            <h2>Flag Watch as Stolen</h2>
+            <label>Token ID</label>
+            <input type="number" id="stolenTokenId">
+            <button onclick="flagStolen()">Flag as Stolen</button>
+            <div id="status-stolen" class="status-box"></div>
+        </section>
+
+        <!-- Just reads data from the blockchain about a watch -->
+        <section class="card">
+            <h2>Watch Info</h2>
+            <label>Token ID</label>
+            <input type="number" id="infoTokenId">
+            <button onclick="getWatchInfo()">Get Watch Info</button>
+            <div id="status-info" class="status-box"></div>
+        </section>
+    </main>
+
+    <!-- ethers.js is the library that lets the page talk to the blockchain -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- config.js holds the contract addresses, ABIs and shared functions -->
+    <script src="config.js"></script>
+    <script>
+
+
+        // Stores the contract so all the functions below can use it
+        let manufacturer;
+
+        // Connects MetaMask and loads the manufacturer contract
+        async function connectWallet() {
+            const wallet = await connect(); 
+            // makeContract links the address, ABI and wallet together so we can call functions on it
+            manufacturer = makeContract(ADDRESSES.manufacturer, MANUFACTURER_ABI, wallet.signer);
+            $("walletAddress").textContent = wallet.address; // Show the connected address on screen
+        }
+
+        // Gives the retailer and service contracts permission to work with this one
+        function authoriseContracts() {
+            runTransaction(
+                "status-authorise",
+                manufacturer,
+                () => manufacturer.addAuthorisedContracts([ADDRESSES.retailer, ADDRESSES.service]), // pass both contract addresses at once
+                () => "Setup complete."
+            );
+        }
+
+        // Approves a wallet address as a retailer
+        function addRetailer() {
+            runTransaction("status-addRetailer", manufacturer, () => manufacturer.addRetailer(val("retailerWallet")), () => "Retailer added.");
+        }
+
+        // Approves a wallet address as a service centre
+        function addServiceCentre() {
+            runTransaction("status-addServiceCentre", manufacturer, () => manufacturer.addServiceCentre(val("serviceCentreWallet")), () => "Service centre added.");
+        }
+
+        // Mints a new watch NFT on the blockchain using the serial, model and description
+        function mintWatch() {
+            runTransaction(
+                "status-mint",
+                manufacturer,
+                () => manufacturer.mintWatch(val("mintSerial"), val("mintModel"), val("mintDesc")),
+                receipt => {
+                    // When a watch is minted the blockchain fires a Transfer event
+                    // We look through the receipt to find it and get the token ID that was assigned
+                    const transfer = receipt.events.find(e => e.event === "Transfer");
+                    return "Watch minted.\nToken ID: " + (transfer ? transfer.args.tokenId.toString() : "unknown");
+                }
+            );
+        }
+
+        // Transfers the watch to a retailer's wallet using its token ID
+        function sendToRetailer() {
+            runTransaction("status-send", manufacturer, () => manufacturer.sendToRetailer(val("sendTokenId"), val("sendRetailerAddr")), () => "Watch sent to retailer.");
+        }
+
+        // Permanently marks a watch as stolen on the blockchain
+        function flagStolen() {
+            runTransaction("status-stolen", manufacturer, () => manufacturer.flagStolen(val("stolenTokenId")), () => "Watch flagged as stolen.");
+        }
+
+        // Looks up a watch by its token ID and displays the details
+        function getWatchInfo() {
+            showWatch("status-info", manufacturer, val("infoTokenId"));
+        }
+    </script>
+</body>
+</html>
