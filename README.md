@@ -2,6 +2,7 @@ This project is for educational purposes only.
 
 WatchChain is a blockchain-based watch authentication and ownership tracking system built using Ethereum smart contracts and a web interface. 
 The project allows manufacturers, retailers, service centres, and owners to securely manage luxury watch records on the blockchain.
+The project uses Ethereum smart contracts with the Sepolia testnet for development and testing.
 
 The system uses NFTs (ERC-721 tokens) to represent watches and stores ownership, service history, and authenticity data permanently on-chain.
 
