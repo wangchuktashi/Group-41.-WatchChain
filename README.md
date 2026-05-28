@@ -22,6 +22,7 @@ Features/Contracts:
 - Manage retailers and service centres
 - Update watch status
 
+
 2. Retailer:
 - Sell watches to customers
 - Transfer ownership
