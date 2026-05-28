@@ -74,5 +74,65 @@ MetaMask Setup:
 - Deploy Contracts
 - Connect wallet using the webpage button
 
+Simplified stakeholder actions table
+Stakeholder	Can do	Cannot do
+Manufacturer	Register a new watch, create the first blockchain record, mint the watch token, set initial watch details	Cannot service a watch, cannot transfer ownership as a retailer sale, cannot change admin permissions unless also admin
+Retailer	View watch details, confirm receipt, update watch status, sell/transfer watch to first owner	Cannot register a brand-new watch, cannot add service records, cannot manage roles
+Service Centre	View watch details, add service/repair history, update service-related status	Cannot register a new watch, cannot sell the watch, cannot transfer ownership unless they are also the owner, cannot manage roles
+Owner	View watch details, verify watch history, transfer ownership to another owner	Cannot register a new watch, cannot mint tokens, cannot add official service records unless also an authorised service centre, cannot manage roles
+Admin	Add/remove authorised roles, manage permissions, flag a watch as disputed/stolen/compromised, view all records	Should not perform normal manufacturer, retailer, or service actions unless explicitly given those roles too
+Public verification function	Check if watch exists, check authenticity/provenance summary, view non-sensitive history	Cannot edit anything, cannot transfer ownership, cannot add records, cannot manage roles
+
+
+
+Even simpler action view
+Action	Manufacturer	Retailer	Service Centre	Owner	Admin	Public Check
+Register watch	Yes	No	No	No	Yes
+	No
+Mint watch token	Yes	No	No	No	Yes
+	No
+Update watch status	Yes	Yes	Yes	Limited	Yes	No
+Add service history	No	No	Yes	No	Yes
+	No
+Transfer ownership	No	Yes (first sale)	No	Yes	Yes
+	No
+View watch details	Yes	Yes	Yes	Yes	Yes	Limited
+Verify authenticity	Yes	Yes	Yes	Yes	Yes	Yes
+Manage permissions	No	No	No	No	Yes	No
+Flag disputed/stolen	No	No	No	No	Yes	No
+
+
+
+
+
+
+
+
+
+
+
+Recommended rule set for this version
+Rule	Meaning
+One watch can only be registered once	Prevent duplicate records
+Only manufacturer can create a watch	Keeps origin trusted
+Only retailer can sell to first owner	Keeps first sale clear
+Only current owner can transfer ownership later	Prevents invalid transfers
+Only service centre can add service records	Keeps maintenance trusted
+Only admin can manage roles and disputes	Keeps permissions controlled
+Public users can only verify, not edit	Makes verification easy and safe
+
+
+
+Updated project assumption
+Item	Decision
+Physical identifier	Serial number only
+Barcode	Not used
+NFC	Not used
+Authenticity check	Based on serial number matching a registered blockchain record
+Scope reason	Keeps the project simpler and focused on blockchain logic
+
+
+
+
 Author:
 Amarjot Saini and Tashi Wangchuk
